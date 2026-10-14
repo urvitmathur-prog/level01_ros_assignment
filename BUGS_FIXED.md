@@ -19,3 +19,9 @@
 - **Symptom:** The bringup launch file uses `testbed_gazebo`, `testbed_description`, `gazebo_ros` and `rviz2`, but none were declared.
 - **Cause:** Incomplete `package.xml`, so build order and rosdep resolution weren't guaranteed.
 - **Fix:** Added `<exec_depend>` entries for all four.
+
+## 5. `testbed_description/launch/robot_description.launch.py` — robot_state_publisher not using sim time
+- **Symptom:** `ros2 param get /robot_state_publisher use_sim_time` returned `False`, while RViz returned `True`.
+- **Cause:** The node was launched without the `use_sim_time` parameter, so it used wall-clock time while Gazebo and the rest of the system used `/clock`.
+- **Impact:** Mixed clocks produce TF timestamp mismatches ("extrapolation into the future/past") that break AMCL and the Nav2 costmaps. Today the impact is limited because the robot's transforms are mostly static, but it would fail as soon as anything published `/joint_states`.
+- **Fix:** Added a `use_sim_time` launch argument (default `true`) and passed it to the node. Also wrapped `robot_description` in `ParameterValue(..., value_type=str)` so Humble doesn't try to parse the URDF as YAML.
