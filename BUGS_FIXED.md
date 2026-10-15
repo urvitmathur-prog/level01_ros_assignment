@@ -26,9 +26,25 @@
 - **Impact:** Mixed clocks produce TF timestamp mismatches ("extrapolation into the future/past") that break AMCL and the Nav2 costmaps. Today the impact is limited because the robot's transforms are mostly static, but it would fail as soon as anything published `/joint_states`.
 - **Fix:** Added a `use_sim_time` launch argument (default `true`) and passed it to the node. Also wrapped `robot_description` in `ParameterValue(..., value_type=str)` so Humble doesn't try to parse the URDF as YAML.
 
+## 6. `testbed_description/urdf/testbed.gazebo` — lidar max range far too short
+- **Symptom:** `ros2 topic echo /scan --once` showed `range_max: 1.5`. The map is ~20 m × 20 m (405×400 px at 0.05 m/px), so most beams returned nothing.
+- **Cause:** `<range><max>1.5</max>` in the ray sensor configuration.
+- **Impact:** AMCL matches laser scans against the map walls; with a 1.5 m range it would rarely see any walls, making localization unreliable. Costmaps would also only see obstacles at very close range.
+- **Fix:** Increased `<max>` to `12.0` m — realistic for an indoor 2D lidar and enough to see walls across the map. AMCL's `laser_max_range` was set to match.
+
 ## 7. `testbed_bringup/maps/testbed_world.yaml` — map image filename is wrong
 - **Symptom:** `map_loader.launch.py` failed. `map_server` logged `Failed to load image file .../maps/wrong_path_testbed_world.pgm ... Unable to open file`, followed by `Callback returned ERROR during the transition: configure` and `lifecycle_manager_map: Failed to bring up all requested nodes. Aborting bringup.`
 - **Cause:** The map YAML's `image:` field pointed to `wrong_path_testbed_world.pgm`, but the file in the `maps/` folder is `testbed_world.pgm`.
 - **Impact:** `map_server` could not complete its *configure* lifecycle transition, so no map was published on `/map`. Without a map, AMCL cannot localize and the global costmap/planner cannot work — the whole navigation stack depends on this.
 - **Fix:** Changed the line to `image: testbed_world.pgm`. The path is kept **relative**, so `map_server` resolves it from the YAML's own directory and it works on any machine, instead of hard-coding an absolute path like `/home/<user>/...`.
 - **Verification:** `ros2 lifecycle get /map_server` → `active [3]`; `/map` reports a 405 × 400 grid at 0.05 m/cell; with a temporary identity `map → odom` transform, the live laser scan overlaid the map walls exactly, confirming the map frame is aligned with the Gazebo world frame.
+
+## Other issues identified (not changed — no functional impact)
+- `testbed.gazebo` loads `libgazebo_ros_control.so`, a ROS 1 plugin that does not exist in Humble. The robot is driven by `libgazebo_ros_diff_drive.so`, so it is unused.
+- `testbed.gazebo` IMU plugin has a stray `>` after `<initial_orientation_as_reference>`.
+- `Gazebo/Silver` is not a built-in Gazebo material, so the robot renders white (`Unable to get Material`).
+- `.vscode/settings.json` contains a hard-coded path from the original developer's machine.
+
+## Environment issues (not code bugs — see testbed_navigation/README.md)
+- gzserver segfault on robot spawn with Cyclone DDS → resolved by using Fast DDS.
+- Lifecycle bond timeouts on a CPU-starved VM → `bond_timeout: 10.0` on all lifecycle managers.
