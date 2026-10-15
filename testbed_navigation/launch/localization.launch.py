@@ -47,6 +47,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{'use_sim_time': use_sim_time,
                      'autostart': autostart,
+                     'bond_timeout': 10.0,   # slow VM: avoid false 'server down' shutdowns
                      'node_names': ['amcl']}])
 
     return LaunchDescription([
