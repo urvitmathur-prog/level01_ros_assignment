@@ -126,8 +126,6 @@ window with obstacle + inflation layers (`odom` frame).
 **Robot size:** `robot_radius: 0.25 m`. From the URDF the casters span ≈ 0.25 × 0.29 m and the wheel
 separation is 0.35 m. Inflation radius 0.55 m keeps paths centred in corridors.
 
-![Goal reached](docs/goal_reached.png)
-
 ---
 
 ## Challenges
