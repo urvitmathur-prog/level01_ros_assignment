@@ -4,8 +4,8 @@
   <name>testbed_navigation</name>
   <version>0.0.0</version>
   <description>Modular Nav2 setup for Testbed-T1.0.0: map loading, AMCL localization, navigation</description>
-  <maintainer email="your-github-email@example.com">Urvit Mathur</maintainer>
-  <license>TODO: License declaration</license>
+  <maintainer email="YOUR_REAL_EMAIL">Urvit Mathur</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <exec_depend>launch_ros</exec_depend>
