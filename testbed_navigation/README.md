@@ -160,3 +160,9 @@ All bugs found in the starter code, and how they were fixed, are in
 - Add `collision_monitor` as a safety layer between the smoother and the robot.
 - Add a top-level launch file that includes all three layers for one-command startup.
 - Re-tune speeds and tolerances on a machine that runs the simulation in real time.
+
+
+## Contact Info 
+- Name : Urvit Mathur
+- Contact Number : +91 8097017001
+- Email Address : urvitmathur@gmail.com
