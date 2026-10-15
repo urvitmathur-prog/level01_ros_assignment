@@ -1,0 +1,8 @@
+# Parameters for nav2_map_server.
+# The map file path (yaml_filename) is passed in from the launch file,
+# so this config stays independent of where the workspace lives.
+map_server:
+  ros__parameters:
+    use_sim_time: true
+    topic_name: "map"      # publish the occupancy grid on /map
+    frame_id: "map"        # the frame the map is expressed in

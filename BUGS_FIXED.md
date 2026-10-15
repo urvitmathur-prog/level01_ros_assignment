@@ -25,3 +25,10 @@
 - **Cause:** The node was launched without the `use_sim_time` parameter, so it used wall-clock time while Gazebo and the rest of the system used `/clock`.
 - **Impact:** Mixed clocks produce TF timestamp mismatches ("extrapolation into the future/past") that break AMCL and the Nav2 costmaps. Today the impact is limited because the robot's transforms are mostly static, but it would fail as soon as anything published `/joint_states`.
 - **Fix:** Added a `use_sim_time` launch argument (default `true`) and passed it to the node. Also wrapped `robot_description` in `ParameterValue(..., value_type=str)` so Humble doesn't try to parse the URDF as YAML.
+
+## 7. `testbed_bringup/maps/testbed_world.yaml` — map image filename is wrong
+- **Symptom:** `map_loader.launch.py` failed. `map_server` logged `Failed to load image file .../maps/wrong_path_testbed_world.pgm ... Unable to open file`, followed by `Callback returned ERROR during the transition: configure` and `lifecycle_manager_map: Failed to bring up all requested nodes. Aborting bringup.`
+- **Cause:** The map YAML's `image:` field pointed to `wrong_path_testbed_world.pgm`, but the file in the `maps/` folder is `testbed_world.pgm`.
+- **Impact:** `map_server` could not complete its *configure* lifecycle transition, so no map was published on `/map`. Without a map, AMCL cannot localize and the global costmap/planner cannot work — the whole navigation stack depends on this.
+- **Fix:** Changed the line to `image: testbed_world.pgm`. The path is kept **relative**, so `map_server` resolves it from the YAML's own directory and it works on any machine, instead of hard-coding an absolute path like `/home/<user>/...`.
+- **Verification:** `ros2 lifecycle get /map_server` → `active [3]`; `/map` reports a 405 × 400 grid at 0.05 m/cell; with a temporary identity `map → odom` transform, the live laser scan overlaid the map walls exactly, confirming the map frame is aligned with the Gazebo world frame.
